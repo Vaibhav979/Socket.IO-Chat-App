@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket Chat</title>
+</head>
+
+<body>
+    <h1>Socket.IO Chat</h1>
+
+    <input type="text" id="usernameInput" placeholder="Enter username" />
+    <button onclick="joinRoom()">
+        Join Room
+    </button>
+
+    <h3>Online Users</h3>
+    <ul id="onlineUsers"></ul>
+
+    <p id="typingIndicator"></p>
+
+    <input type="text" id="messageInput">
+    <button onClick="sendMessage()">
+        Send
+    </button>
+
+    <h3>Private Message</h3>
+
+    <input type="text" id="dmUserInput" placeholder="Recipient username" />
+
+    <input type="text" id="dmMessageInput" placeholder="Private message" />
+
+    <button onclick="sendPrivateMessage()">
+        Send DM
+    </button>
+
+    <ul id="messages"></ul>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+    <script>
+        let typingTimeout;
+        const token = localStorage.getItem("token");
+
+        const socket = io('http://localhost:3000', {
+            auth: {
+                token
+            }
+        });
+
+        // private dms
+        socket.on("private-message", (data) => {
+            const li = document.createElement("li");
+
+            li.innerText = `[DM] ${data.from}: ${data.text}`;
+
+            document.getElementById("messages").appendChild(li);
+        });
+
+        // chat-history event is emitted by the server when a user joins a room. it contains the old messages of the room. this function runs when client receives "chat-history" event from the server
+        socket.on(
+            "chat-history",
+            (messages) => {
+                messages.forEach((msg) => {
+                    const li = document.createElement("li");
+
+                    li.innerText = `${msg.username}: ${msg.text}`;
+                    document.getElementById("messages").appendChild(li);
+                })
+            }
+        );
+
+        socket.on("online-users", (users) => {
+            const usersList = document.getElementById("onlineUsers");
+            usersList.innerHTML = "";
+
+            users.forEach((user) => {
+                const li = document.createElement("li");
+
+                li.innerText = user;
+
+                usersList.appendChild(li);
+            });
+        });
+
+        // this function runs as soon as user connects to the server
+        socket.on("connect", () => {
+            console.log("Connected to server");
+            // client sends a message to the server joining a specific room. send event("join-room") to the server
+            // socket.emit("join-room", {
+            //     room: "room1",
+            //     username: "vaibhav"
+            // });
+        });
+
+        // listens for "receive-message" event from the server. when server sends "receive-message" event, this function runs
+        socket.on("receive-message", (data) => {
+            const li = document.createElement("li");
+            if (data.system) {
+                li.innerText = data.text;
+            } else {
+                li.innerText = `${data.username}: ${data.text}`;
+            }
+            document.getElementById("messages").appendChild(li);
+        });
+
+        socket.on("user-typing", (data) => {
+            const typingIndicator = document.getElementById("typingIndicator");
+            typingIndicator.innerText = `${data.username} is typing...`;
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                typingIndicator.innerText = "";
+            }, 1000);
+        });
+
+        // reconnect
+        socket.on("reconnect", () => {
+            const username = document.getElementById("usernameInput").value;
+
+            if (username) {
+                socket.emit("join-room", {
+                    room: "room1",
+                    username
+                });
+            }
+        });
+
+        // 'typing' indicator: when user types in the input field, emit "typing" event to the server
+        const input = document.getElementById("messageInput");
+        input.addEventListener("input", () => {
+            socket.emit("typing", {
+                room: "room1"
+            });
+        });
+
+        const sendMessage = () => {
+            const input = document.getElementById("messageInput");
+            socket.emit(
+                "send-message", {
+                room: "room1",
+                message: input.value
+            }
+            );
+            input.value = "";
+        };
+
+        const sendPrivateMessage = () => {
+
+            const to = document.getElementById("dmUserInput").value
+
+            const message = document.getElementById("dmMessageInput").value
+
+            socket.emit("private-message", {
+                to,
+                message
+            });
+            input.value = "";
+        }
+
+        const joinRoom = () => {
+            const username = document.getElementById(
+                "usernameInput"
+            ).value;
+
+            socket.emit("join-room", {
+                room: "room1",
+                username
+            });
+        }
+    </script>
+
+</body>
+
+</html>

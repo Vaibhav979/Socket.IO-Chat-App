@@ -1,12 +1,24 @@
-import { Socket } from "socket.io";
+import { Socket, Server } from "socket.io";
+import { onlineUsers } from "../store/onlineUsers";
 
 export const registerTypingHandlers = (
-    socket: Socket
+    socket: Socket,
+    io: Server
 ) => {
-    socket.on("typing", ({ room }) => {
+    socket.on("typing", ({ to }) => {
         console.log(`${socket.data.username} is typing...`);
-        socket.to(room).emit("user-typing", {
-            username: socket.data.username
-        });
-    });
+        const targetSocketId = onlineUsers.get(to);
+
+        if (!targetSocketId) {
+            return;
+        }
+        
+        io.to(targetSocketId).emit(
+             "user-typing",
+                {
+                    username: socket.data.username
+                }
+            );
+        }
+    );
 };

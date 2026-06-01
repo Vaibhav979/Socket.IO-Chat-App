@@ -2,19 +2,26 @@ import mongoose from "mongoose";
 
 const messageSchema = new mongoose.Schema({
 
-    username: {
+    sender: {
         type: String,
         required: true
     },
-
-    room: {
+    receiver: {
         type: String,
         required: true
     },
-
     text: {
         type: String,
-        required: true
+    },
+    seen: {
+        type: Boolean,
+        default: false
+    },
+    fileUrl: {
+        type: String
+    },
+    fileType: {
+        type: String
     }
 }, {
     timestamps: true

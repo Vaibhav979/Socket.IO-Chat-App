@@ -5,171 +5,975 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Socket Chat</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
 </head>
 
 <body>
-    <h1>Socket.IO Chat</h1>
+    <div class="app">
 
-    <input type="text" id="usernameInput" placeholder="Enter username" />
-    <button onclick="joinRoom()">
-        Join Room
-    </button>
+        <!-- LEFT PANEL -->
+        <div class="left-panel">
 
-    <h3>Online Users</h3>
-    <ul id="onlineUsers"></ul>
+            <!-- CURRENT USER -->
 
-    <p id="typingIndicator"></p>
+            <div class="current-user">
 
-    <input type="text" id="messageInput">
-    <button onClick="sendMessage()">
-        Send
-    </button>
+                <div class="current-user-info">
 
-    <h3>Private Message</h3>
+                    <div class="avatar"></div>
 
-    <input type="text" id="dmUserInput" placeholder="Recipient username" />
+                    <div>
 
-    <input type="text" id="dmMessageInput" placeholder="Private message" />
+                        <h4 id="currentUsername"></h4>
 
-    <button onclick="sendPrivateMessage()">
-        Send DM
-    </button>
+                        <p id="currentUserRole"></p>
 
-    <ul id="messages"></ul>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- SEARCH -->
+
+            <div class="search-box">
+
+                <div class="search-wrapper">
+
+                    <i class="fa-solid fa-magnifying-glass"></i>
+
+                    <input type="text" placeholder="Search Here..." />
+
+                </div>
+
+            </div>
+
+            <!-- CONTACTS -->
+
+            <div class="contacts-list">
+
+                <!-- <div class="contact active">
+
+                    <div class="avatar"></div>
+
+                    <div class="contact-details">
+
+                        <div class="contact-top">
+
+                            <h4>Rahul</h4>
+
+                            <span>10:35 AM</span>
+
+                        </div>
+
+                        <div class="contact-bottom">
+
+                            <p>Typing...</p>
+
+                            <div class="unread-badge">
+                                1
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div> -->
+
+            </div>
+
+        </div>
+        <!-- LEFT PANEL ENDS -->
+
+
+        <!-- CHAT PANEL -->
+        <div class="chat-panel">
+
+            <div class="chat-header">
+
+                <div class="chat-user-info">
+
+                    <div class="avatar small-avatar"></div>
+
+                    <div class="activeChat">
+
+                        <h3 id="activeChatName">
+                            Select a Chat
+                        </h3>
+
+
+                        <p id="activeChatStatus">
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <div class="chat-actions">
+
+                    <button>
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+
+                    <button>
+                        <i class="fa-regular fa-heart"></i>
+                    </button>
+
+                    <button>
+                        <i class="fa-regular fa-bell"></i>
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div class="message-container">
+
+                <div id="messages">
+                    <!-- received -->
+                    <!-- sent -->
+                </div>
+
+                <p id="typingIndicator"></p>
+
+            </div>
+
+            <div class="message-input-area">
+
+                <button class="icon-btn">
+                    <img src="../assets/mic.png" alt="mic" />
+                </button>
+
+                <input type="text" id="messageInput" placeholder="Write Something..." />
+
+                <div class="input-icons">
+
+                    <input type="file" id="fileInput" multiple hidden />
+                    <button class="icon-btn" onClick="document.getElementById('fileInput').click()">
+                        <img src="../assets/pin.png" alt="attach" />
+                    </button>
+
+                    <button class="icon-btn">
+                        <img src="../assets/camera.png" alt="camera" />
+                    </button>
+
+                    <button class="icon-btn">
+                        <img src="../assets/emoji.png" alt="emoji" />
+                    </button>
+
+                </div>
+
+                <button class="send-btn" onclick="sendMessage()">
+
+                    <img src="../assets/send.png" alt="send" />
+
+                </button>
+
+            </div>
+
+        </div>
+        <!-- CHAT PANEL ENDS -->
+
+
+        <!-- RIGHT PANEL -->
+        <div class="right-panel">
+
+            <!-- search -->
+
+            <div class="search-box">
+
+                <div class="search-wrapper">
+
+                    <i class="fa-solid fa-magnifying-glass"></i>
+
+                    <input type="text" placeholder="Search Here..." />
+
+                </div>
+
+            </div>
+
+            <!-- PROFILE -->
+
+            <div class="profile-section">
+
+                <img src="./assets/profile.jpg" alt="profile" class="profile-avatar" />
+
+                <h2 id="profile-name">----------</h2>
+
+                <p id="profile-role">---------</p>
+
+            </div>
+
+            <!-- ACTION BUTTONS -->
+
+            <div class="profile-actions">
+
+                <div class="action-item">
+
+                    <div class="action-circle">
+                        <img src="../assets/comment.png" alt="chat" />
+                    </div>
+                    <span>Chat</span>
+                </div>
+
+                <div class="vertical-divider"></div>
+
+                <div class="action-item">
+                    <div class="action-circle">
+                        <img src="../assets/videocall.png" alt="chat" />
+                    </div>
+                    <span>Video Call</span>
+                </div>
+            </div>
+
+            <!-- QUICK LINKS -->
+
+            <!-- QUICK LINKS -->
+
+            <div class="quick-links">
+
+                <div class="quick-link">
+
+                    <a href="http://"><i class="fa-regular fa-user"></i>
+                        <span>View Friends</span>
+                    </a>
+
+                </div>
+
+                <div class="quick-link">
+
+                    <a href="http://"><i class="fa-regular fa-heart"></i>
+
+                        <span>Add to Favorites</span>
+                    </a>
+
+                </div>
+
+            </div>
+
+            <!-- ATTACHMENTS -->
+
+            <div class="attachments-section">
+
+                <h3 id="heading">Attachments</h3>
+
+                <div class="attachments-grid">
+
+                    <div class="attachment-card">
+
+                        <i class="fa-solid fa-file-pdf"></i>
+
+                        <span>PDF</span>
+
+                    </div>
+
+                    <div class="attachment-card">
+
+                        <i class="fa-solid fa-film"></i>
+
+                        <span>VIDEO</span>
+
+                    </div>
+
+                    <div class="attachment-card">
+
+                        <i class="fa-solid fa-music"></i>
+
+                        <span>MP3</span>
+
+                    </div>
+
+                    <div class="attachment-card">
+
+                        <i class="fa-solid fa-image"></i>
+
+                        <span>IMAGE</span>
+
+                    </div>
+
+                </div>
+
+                <button class="view-all-btn">
+                    View All
+                </button>
+
+            </div>
+
+        </div>
+        <!-- RIGHT PANEL ENDS -->
+
+    </div>
 
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
     <script>
+        let lastRenderedDate = "";
+        let pendingFiles = [];
+        let isLoadingConversation = false;
+        const username = prompt("Enter username");
+        const role = prompt("Enter role");
+
+        if (!username || !role) {
+            alert("Username and role required");
+
+            throw new Error("Invalid user");
+        }
+
+        let activeChatUser = null;
+        let currentUser = null;
         let typingTimeout;
-        const token = localStorage.getItem("token");
+        let onlineUsers = [];
 
-        const socket = io('http://localhost:3000', {
-            auth: {
-                token
+        const socket = io(
+            'http://localhost:3000'
+        );
+
+        const fetchUsers = async () => {
+            try {
+                // const response = await fetch(`http://localhost:3000/conversations/${currentUser.username}`);
+                const response = await fetch(
+                    `http://localhost:3000/conversations/${currentUser.username}`
+                );
+
+                const users = await response.json();
+
+                renderUsers(users);
+            } catch (error) {
+                console.log(error);
             }
+        }
+
+        const renderUsers = (users) => {
+
+            const usersContainer =
+                document.querySelector(
+                    ".contacts-list"
+                );
+
+            usersContainer.innerHTML = "";
+
+            users.forEach((user) => {
+
+                if (
+                    user.username ===
+                    currentUser.username
+                ) {
+                    return;
+                }
+
+                const userDiv =
+                    document.createElement("div");
+
+                userDiv.classList.add(
+                    "contact"
+                );
+
+                userDiv.innerHTML = `
+            <div class="avatar"></div>
+
+            <div class="contact-details">
+
+                <div class="contact-top">
+
+    <h4>
+        ${user.username}
+    </h4>
+
+    <span class="message-time">
+        ${user.lastMessageTime
+                        ? new Date(
+                            user.lastMessageTime
+                        ).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit"
+                        })
+                        : ""
+                    }
+    </span>
+
+</div>
+
+<div class="contact-bottom">
+
+    <p class="last-message">
+        ${user.lastSender === currentUser.username ? `You: ${user.lastMessage ? user.lastMessage : user.lastFileType?.startsWith("image/") ? "sent an image" : 'sent an attachment'}` : `${user.username}: ${user.lastMessage ? user.lastMessage : user.lastFileType?.startsWith("image/") ? "sent an image" : "sent an attachment"}`}
+    </p>
+    ${user.unreadCount > 0
+                        ? `
+            <div class="unread-badge">
+                ${user.unreadCount}
+            </div>
+        `: ""
+                    }
+
+    <div class="contact-status">
+
+        <div class="status-dot ${onlineUsers.includes(
+                        user.username
+                    ) ? "online" : "offline"
+                    }"></div>
+
+    </div>
+
+</div>
+
+            </div>
+        `;
+
+                userDiv.addEventListener(
+                    "click",
+                    () => {
+
+                        document.querySelectorAll(".contact").forEach((contact) => {
+                            contact.classList.remove("active");
+                        });
+
+                        activeChatUser =
+                            user.username;
+
+                        userDiv.classList.add("active");
+
+                        document.getElementById(
+                            "activeChatName"
+                        ).innerText =
+                            user.username;
+
+                        if (activeChatUser) {
+                            const statusdot = document.getElementById("activeChatStatus");
+                            statusdot.classList.remove("online", "offline");
+                            statusdot.classList.add(
+                                onlineUsers.includes(
+                                    activeChatUser
+                                ) ?
+                                    "online"
+                                    : "offline"
+                            );
+                        }
+
+                        document.getElementById("profile-name").innerText = user.username;
+                        document.getElementById("profile-role").innerText = user.role;
+
+                        document.getElementById(
+                            "messages"
+                        ).innerHTML = "";
+
+                        socket.emit(
+                            "load-conversations",
+                            {
+                                withUser:
+                                    user.username
+                            }
+
+                        );
+                        fetchUsers();
+                    }
+                );
+
+                usersContainer.appendChild(
+                    userDiv
+                );
+            });
+        };
+
+        const formatMessageTime = (dateString) => {
+            return new Date(dateString)
+                .toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
+                );
+        };
+
+        const formatDaySeparator = (dateString) => {
+            const date = new Date(dateString);
+            const today = new Date();
+            const yesterday = new Date();
+
+            yesterday.setDate(
+                today.getDate() - 1
+            );
+
+            const oneWeekAgo = new Date();
+
+            oneWeekAgo.setDate(
+                today.getDate() - 7
+            );
+
+            // today
+            if (
+                date.toDateString() === today.toDateString()
+            ) {
+                return "Today";
+            }
+
+            // yesterday
+            if (
+                date.toDateString() === yesterday.toDateString()
+            ) {
+                return "Yesterday";
+            }
+
+            if (date > oneWeekAgo && date < today) {
+                return date.toLocaleDateString(
+                    [],
+                    {
+                        weekday: "long"
+                    }
+                );
+            }
+
+            // older
+            return date.toLocaleDateString(
+                [],
+                {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric"
+                }
+            );
+        };
+
+        const renderMessage = (data) => {
+            if (!data || !data.sender) {
+                return;
+            }
+            const messageContainer = document.querySelector(
+                ".message-container"
+            );
+            const wasNearBottom =
+                messageContainer.scrollHeight -
+                messageContainer.scrollTop -
+                messageContainer.clientHeight < 100;
+            const isSender = data.sender === currentUser.username;
+
+            const currentMessageDate = new Date(data.createdAt).toDateString();
+
+            if (currentMessageDate !== lastRenderedDate) {
+                lastRenderedDate = currentMessageDate;
+
+                const separator = document.createElement("div");
+
+                separator.classList.add(
+                    "date-separator"
+                );
+
+                separator.innerText = formatDaySeparator(
+                    data.createdAt
+                );
+
+                document.getElementById("messages").appendChild(separator);
+            }
+
+            const row = document.createElement("div");
+
+            row.classList.add(
+                "message-row"
+            );
+
+            row.classList.add(
+                isSender ? "sent-row" : "received-row"
+            );
+
+            row.innerHTML = `
+
+    ${!isSender
+                    ? `<div class="message-avatar"></div>`
+                    : ""
+                }
+
+    <div class="message-wrapper">
+
+        ${isSender
+                    ? `
+                <span class="message-time">
+                    ${formatMessageTime(data.createdAt)}
+                </span>
+            `
+                    : ""
+                }
+
+        <div class="message ${isSender ? "sent" : "received"}">
+
+            ${data.text || ""}
+
+            ${data.fileUrl && data.fileType
+                    ? data.fileType.startsWith("image/")
+                        ? `
+                        <img
+                            src="${data.fileUrl}"
+                            class="chat-image"
+                        />
+                    `
+                        : `
+                        <a
+                            href="${data.fileUrl}"
+                            target="_blank"
+                        >
+                            Download File
+                        </a>
+                    `
+                    : ""
+                }
+
+        </div>
+
+        ${!isSender
+                    ? `
+                <span class="message-time">
+                    ${formatMessageTime(data.createdAt)}
+                </span>
+            `
+                    : ""
+                }
+
+    </div>
+
+    ${isSender
+                    ? `<div class="message-avatar"></div>`
+                    : ""
+                }
+
+`;
+
+            document
+                .getElementById("messages")
+                .appendChild(row);
+
+            // sender should always scroll
+            if (isSender) {
+
+                messageContainer.scrollTop =
+                    messageContainer.scrollHeight;
+
+            } else {
+
+                // receiver scrolls only if near bottom
+                if (wasNearBottom) {
+
+                    messageContainer.scrollTop =
+                        messageContainer.scrollHeight;
+                }
+            }
+        };
+
+        currentUser = {
+            username,
+            role
+        };
+
+        document.getElementById("currentUsername").innerText = currentUser.username;
+        document.getElementById("currentUserRole").innerText = currentUser.role;
+
+        socket.emit(
+            "register-user",
+            currentUser
+        );
+
+        fetchUsers();
+
+        const messages =
+            document.getElementById("messages");
+
+        const messageContainer = document.querySelector(
+            ".message-container"
+        );
+
+        const markMessagesAsSeen = () => {
+
+            if (!activeChatUser) {
+                return;
+            }
+
+            socket.emit(
+                "load-conversations",
+                {
+                    withUser: activeChatUser
+                }
+            );
+        };
+
+        // rendering online users
+        socket.on("online-users", (users) => {
+            onlineUsers = users;
+            if (activeChatUser) {
+                const statusdot = document.getElementById("activeChatStatus");
+
+                // clean the css 
+                statusdot.classList.remove("online", "offline");
+
+                statusdot.classList.add(
+                    onlineUsers.includes(
+                        activeChatUser
+                    ) ? "online" : "offline"
+                );
+            }
+            fetchUsers();
         });
 
-        // private dms
-        socket.on("private-message", (data) => {
-            const li = document.createElement("li");
-
-            li.innerText = `[DM] ${data.from}: ${data.text}`;
-
-            document.getElementById("messages").appendChild(li);
-        });
-
-        // chat-history event is emitted by the server when a user joins a room. it contains the old messages of the room. this function runs when client receives "chat-history" event from the server
+        // TYPING
         socket.on(
-            "chat-history",
-            (messages) => {
-                messages.forEach((msg) => {
-                    const li = document.createElement("li");
+            "user-typing",
+            (data) => {
 
-                    li.innerText = `${msg.username}: ${msg.text}`;
-                    document.getElementById("messages").appendChild(li);
-                })
+                const typingIndicator =
+                    document.getElementById(
+                        "typingIndicator"
+                    );
+
+                typingIndicator.innerText =
+                    `${data.username} is typing...`;
+
+                clearTimeout(
+                    typingTimeout
+                );
+
+                typingTimeout =
+                    setTimeout(() => {
+
+                        typingIndicator.innerText = "";
+
+                    }, 1000);
             }
         );
 
-        socket.on("online-users", (users) => {
-            const usersList = document.getElementById("onlineUsers");
-            usersList.innerHTML = "";
+        // FRONTEND RECEIVES PRIVATE MESSAGE
+        socket.on("private-message", (data) => {
+            if (
+                data.sender === activeChatUser ||
+                data.receiver === activeChatUser
+            ) {
+                renderMessage(data);
+                const messageContainer =
+                    document.querySelector(
+                        ".message-container"
+                    );
 
-            users.forEach((user) => {
-                const li = document.createElement("li");
+                const isAtBottom =
+                    messageContainer.scrollHeight -
+                    messageContainer.scrollTop -
+                    messageContainer.clientHeight < 80;
 
-                li.innerText = user;
-
-                usersList.appendChild(li);
-            });
-        });
-
-        // this function runs as soon as user connects to the server
-        socket.on("connect", () => {
-            console.log("Connected to server");
-            // client sends a message to the server joining a specific room. send event("join-room") to the server
-            // socket.emit("join-room", {
-            //     room: "room1",
-            //     username: "vaibhav"
-            // });
-        });
-
-        // listens for "receive-message" event from the server. when server sends "receive-message" event, this function runs
-        socket.on("receive-message", (data) => {
-            const li = document.createElement("li");
-            if (data.system) {
-                li.innerText = data.text;
-            } else {
-                li.innerText = `${data.username}: ${data.text}`;
+                if (isAtBottom) {
+                    markMessagesAsSeen();
+                }
             }
-            document.getElementById("messages").appendChild(li);
+            // refresh sidebar
+            fetchUsers();
         });
 
-        socket.on("user-typing", (data) => {
-            const typingIndicator = document.getElementById("typingIndicator");
-            typingIndicator.innerText = `${data.username} is typing...`;
-            clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(() => {
-                typingIndicator.innerText = "";
-            }, 1000);
-        });
-
-        // reconnect
-        socket.on("reconnect", () => {
-            const username = document.getElementById("usernameInput").value;
-
-            if (username) {
-                socket.emit("join-room", {
-                    room: "room1",
-                    username
-                });
-            }
-        });
-
-        // 'typing' indicator: when user types in the input field, emit "typing" event to the server
-        const input = document.getElementById("messageInput");
-        input.addEventListener("input", () => {
-            socket.emit("typing", {
-                room: "room1"
-            });
-        });
-
-        const sendMessage = () => {
-            const input = document.getElementById("messageInput");
-            socket.emit(
-                "send-message", {
-                room: "room1",
-                message: input.value
-            }
+        // INPUT TYPING EVENT
+        const input =
+            document.getElementById(
+                "messageInput"
             );
+
+        input.addEventListener(
+            "input",
+            () => {
+
+                socket.emit(
+                    "typing",
+                    {
+                        to: activeChatUser
+                    }
+                );
+            }
+        );
+
+        // SEND MESSAGE
+        const sendMessage = async () => {
+
+            const input =
+                document.getElementById(
+                    "messageInput"
+                );
+
+            const textMessage = input.value.trim();
+
+            for (const file of pendingFiles) {
+                const formData = new FormData();
+
+                formData.append("file", file);
+
+                const response = await fetch("http://localhost:3000/upload",
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+                const data = await response.json();
+
+                socket.emit("private-message",
+                    {
+                        to: activeChatUser,
+                        fileUrl: data.fileUrl,
+                        fileType: data.fileType,
+                    }
+                );
+            }
+
+            if (textMessage) {
+                socket.emit("private-message",
+                    {
+                        to: activeChatUser,
+                        message: textMessage
+                    }
+                );
+            }
+            pendingFiles = [];
             input.value = "";
         };
 
-        const sendPrivateMessage = () => {
+        // FRONTEND RECEIVES HISTORY
+        socket.on("conversation-history", (messages) => {
+            isLoadingConversation = true;
+            const messagesContainer = document.getElementById("messages");
+            messagesContainer.innerHTML = "";
 
-            const to = document.getElementById("dmUserInput").value
-
-            const message = document.getElementById("dmMessageInput").value
-
-            socket.emit("private-message", {
-                to,
-                message
+            messages.forEach((msg) => {
+                renderHistoryMessage(msg);
             });
-            input.value = "";
-        }
 
-        const joinRoom = () => {
-            const username = document.getElementById(
-                "usernameInput"
-            ).value;
+            requestAnimationFrame(() => {
+                messageContainer.scrollTop =
+                    messageContainer.scrollHeight;
 
-            socket.emit("join-room", {
-                room: "room1",
-                username
+                isLoadingConversation = false;
             });
-        }
+        });
+
+        const renderHistoryMessage = (data) => {
+            const isSender = data.sender === currentUser.username;
+
+            const currentMessageDate =
+                new Date(data.createdAt)
+                    .toDateString();
+
+            if (
+                currentMessageDate !==
+                lastRenderedDate
+            ) {
+
+                lastRenderedDate =
+                    currentMessageDate;
+
+                const separator =
+                    document.createElement("div");
+
+                separator.classList.add(
+                    "date-separator"
+                );
+
+                separator.innerText =
+                    formatDaySeparator(
+                        data.createdAt
+                    );
+
+                document
+                    .getElementById("messages")
+                    .appendChild(separator);
+            }
+
+            const row = document.createElement("div");
+
+            row.classList.add(
+                "message-row"
+            );
+
+            row.classList.add(
+                isSender ? "sent-row" : "received-row"
+            );
+
+            row.innerHTML = `
+
+    ${!isSender
+                    ? `<div class="message-avatar"></div>`
+                    : ""
+                }
+
+    <div class="message-wrapper">
+
+        ${isSender
+                    ? `
+                <span class="message-time">
+                    ${formatMessageTime(data.createdAt)}
+                </span>
+            `
+                    : ""
+                }
+
+        <div class="message ${isSender ? "sent" : "received"}">
+
+            ${data.text || ""}
+
+            ${data.fileUrl && data.fileType
+                    ? data.fileType.startsWith("image/")
+                        ? `
+                        <img
+                            src="${data.fileUrl}"
+                            class="chat-image"
+                        />
+                    `
+                        : `
+                        <a
+                            href="${data.fileUrl}"
+                            target="_blank"
+                        >
+                            Download File
+                        </a>
+                    `
+                    : ""
+                }
+
+        </div>
+
+        ${!isSender
+                    ? `
+                <span class="message-time">
+                    ${formatMessageTime(data.createdAt)}
+                </span>
+            `
+                    : ""
+                }
+
+    </div>
+
+    ${isSender
+                    ? `<div class="message-avatar"></div>`
+                    : ""
+                }
+
+`;
+
+            document
+                .getElementById("messages")
+                .appendChild(row);
+        };
+
+        socket.on("message-seen", () => {
+            fetchUsers();
+        });
+
+        const fileInput = document.getElementById(
+            "fileInput"
+        );
+
+        fileInput.addEventListener(
+            "change", () => {
+                const files = Array.from(fileInput.files);
+
+                pendingFiles.push(...files);
+                console.log(
+                    "Pending Files",
+                    pendingFiles
+                );
+                fileInput.value = "";
+            }
+        );
     </script>
-
 </body>
 
 </html>

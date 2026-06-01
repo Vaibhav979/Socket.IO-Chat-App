@@ -7,7 +7,7 @@ export const registerPresenceHandlers = (
     socket: Socket
 ) => {
     socket.on("disconnect", () => {
-        onlineUsers.delete(socket.data);
+        onlineUsers.delete(socket.data.username);
 
         io.emit(
             "online-users",

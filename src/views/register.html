@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="logic"></div>
+    <script>
+        let email = "";
+        let verificationId = "";
+        const container = document.querySelector(".logic");
+
+        renderEmailForm();
+
+        function renderEmailForm() {
+            container.innerHTML = `<input type="email" id="email" placeholder="Enter your email" required>
+    <button onClick="sendOtp()">Get Otp</button>`;
+        }
+
+        function renderOtpForm() {
+            container.innerHTML = `
+                <input type="text" id="otp" placeholder="Enter otp" required>
+                <button onClick="verifyOtp()">Verify OTP</button>
+            `;
+        };
+
+        function renderRegisterForm() {
+            container.innerHTML = `
+                <input type="text" id="name" placeholder="Enter name" required>
+                <input type="text" id="role" placholder="Enter your role" required>
+                <input type="password" id="password" placeholder="Enter password" required>
+                <button onClick="register()">Register</button>
+            `;
+        }
+
+        async function sendOtp() {
+            email = document.getElementById("email").value;
+            const response = await fetch("http://localhost:3000/auth/send-otp", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    email
+                })
+            });
+            if (response.ok) {
+                renderOtpForm();
+            }
+        };
+
+        async function verifyOtp() {
+            const otp = document.getElementById("otp").value;
+            const response = await fetch("http://localhost:3000/auth/verify", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    email,
+                    otp
+                })
+            });
+            if (response.ok) {
+                const data = await response.json();
+                verificationId = data.verificationId;
+                renderRegisterForm();
+            }
+        }
+
+        async function register() {
+
+            const username =
+                document.getElementById("name").value;
+
+            const password =
+                document.getElementById("password").value;
+
+            const role =
+                document.getElementById("role").value;
+
+            const response = await fetch("http://localhost:3000/auth/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    verificationId,
+
+                    username,
+
+                    password,
+
+                    role
+                })
+            });
+
+            const data = await response.json();
+
+            localStorage.setItem(
+                "token",
+                data.token
+            );
+
+            window.location.href = "client.html";
+        };
+    </script>
+</body>
+
+</html>

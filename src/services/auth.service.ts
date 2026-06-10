@@ -75,14 +75,14 @@ export const loginUser = async (
         throw new Error("Invalid Credentials");
     }
 
-    if (!user.isEmailVerified) {
-        throw new Error("Email not verified");
-    }
-
     const isValid = await bcrypt.compare(password, user.passwordHash);
 
     if (!isValid) {
         throw new Error("Invalid Credentials");
+    }
+
+    if (!user.isEmailVerified) {
+        throw new Error("Email not verified");
     }
 
     const token = generateToken({

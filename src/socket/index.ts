@@ -3,13 +3,7 @@ import { Server } from "socket.io";
 import { onlineUsers } from "../store/onlineUsers";
 import User from "../models/users";
 
-// import {
-//     registerRoomHandlers
-// } from "./roomHandler";
-
-// import {
-//     registerMessagehandlers,
-// } from "./messageHandlers";
+import jwt from "jsonwebtoken";
 
 import {
     registerLoadConversations
@@ -30,6 +24,23 @@ import {
 export const initializeSocket = (
     io: Server
 ) => {
+    io.use((socket, next) => {
+        try {
+            const token = socket.handshake.auth.token;
+
+            const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+
+            socket.data.user = decoded;
+            next();
+        } catch {
+            next (
+                new Error(
+                    "Authentication error"
+                )
+            );
+        }
+    });
+
     io.on("connection", (socket) => {
         console.log(`New client connected: ${socket.id}`);
 

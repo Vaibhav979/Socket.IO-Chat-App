@@ -6,6 +6,8 @@ import userRoutes from "./routes/userRoutes";
 import conversationRoutes from "./routes/conversationsRoutes";
 import path from "path";
 import uploadRoutes from "./routes/uploadRoutes";
+import sendemailroutes from "./routes/sendemail.routes";
+import authRoutes from "./routes/auth.routes";
 
 import { Server }
 from "socket.io";
@@ -24,6 +26,7 @@ connectDB();
 const app = express();
 
 app.use(cors());
+app.use(express.json());
 app.use(userRoutes);
 app.use(conversationRoutes);
 app.use(
@@ -33,6 +36,8 @@ app.use(
     )
 );
 app.use(uploadRoutes);
+app.use(sendemailroutes);
+app.use(authRoutes);
 
 const server =
     http.createServer(app);

@@ -1,10 +1,12 @@
 import express from "express";
 import { upload } from "../middleware/upload";
+import { authenticate } from "../middleware/auth.middleware";
 
 const router = express.Router();
 
 router.post(
     "/upload",
+    authenticate,
     upload.single("file"),
     async (req, res) => {
         try {

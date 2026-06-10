@@ -52,35 +52,7 @@
             <!-- CONTACTS -->
 
             <div class="contacts-list">
-
-                <!-- <div class="contact active">
-
-                    <div class="avatar"></div>
-
-                    <div class="contact-details">
-
-                        <div class="contact-top">
-
-                            <h4>Rahul</h4>
-
-                            <span>10:35 AM</span>
-
-                        </div>
-
-                        <div class="contact-bottom">
-
-                            <p>Typing...</p>
-
-                            <div class="unread-badge">
-                                1
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div> -->
-
+                
             </div>
 
         </div>
@@ -309,32 +281,62 @@
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
     <script>
+        const token = localStorage.getItem("token");
         let lastRenderedDate = "";
         let pendingFiles = [];
         let isLoadingConversation = false;
-        const username = prompt("Enter username");
-        const role = prompt("Enter role");
 
-        if (!username || !role) {
-            alert("Username and role required");
+        (async () => {
 
-            throw new Error("Invalid user");
-        }
+            const token =
+                localStorage.getItem("token");
+
+            const response =
+                await fetch(
+                    "http://localhost:3000/auth/me",
+                    {
+                        headers: {
+                            Authorization:
+                                `Bearer ${token}`
+                        }
+                    }
+                );
+
+            const data =
+                await response.json();
+
+            currentUser =
+                data;
+
+            document.getElementById("currentUsername").innerText = currentUser.username;
+            document.getElementById("currentUserRole").innerText = currentUser.role;   
+
+            fetchUsers();
+
+        })();
 
         let activeChatUser = null;
-        let currentUser = null;
         let typingTimeout;
         let onlineUsers = [];
 
         const socket = io(
-            'http://localhost:3000'
+            'http://localhost:3000',
+            {
+                auth: {
+                    token
+                }
+            }
         );
 
         const fetchUsers = async () => {
             try {
                 // const response = await fetch(`http://localhost:3000/conversations/${currentUser.username}`);
                 const response = await fetch(
-                    `http://localhost:3000/conversations/${currentUser.username}`
+                    `http://localhost:3000/conversations/`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
                 );
 
                 const users = await response.json();
@@ -657,21 +659,6 @@
                 }
             }
         };
-
-        currentUser = {
-            username,
-            role
-        };
-
-        document.getElementById("currentUsername").innerText = currentUser.username;
-        document.getElementById("currentUserRole").innerText = currentUser.role;
-
-        socket.emit(
-            "register-user",
-            currentUser
-        );
-
-        fetchUsers();
 
         const messages =
             document.getElementById("messages");

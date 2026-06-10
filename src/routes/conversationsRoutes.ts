@@ -2,16 +2,19 @@ import express from "express";
 import Message from "../models/messages";
 import User from "../models/users";
 
+import { authenticate } from "../middleware/auth.middleware";
+
 const router = express.Router();
 
 router.get(
-    "/conversations/:username",
+    "/conversations",
+    authenticate,
     async (req, res) => {
 
         try {
 
             const currentUser =
-                req.params.username;
+                req.user.username;
 
             const messages =
                 await Message.find({

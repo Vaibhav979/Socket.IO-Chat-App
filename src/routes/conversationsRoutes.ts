@@ -16,6 +16,12 @@ router.get(
             const currentUser =
                 req.user.username;
 
+            const allUsers = await User.find({
+                username: {
+                    $ne: currentUser
+                }
+            });
+
             const messages =
                 await Message.find({
                     $or: [
@@ -83,10 +89,37 @@ router.get(
                 }
             }
 
+            for (const user of allUsers) {
+                if (!conversationMap.has(user.username)) {
+                    conversationMap.set(user.username,
+                        {
+                            username: user.username,
+
+                            role: user.role,
+
+                            lastMessage: "",
+
+                            unreadCount: 0,
+
+                            lastSender: null
+
+                            // lastFileType: null
+                        }
+                    );
+                }
+            }
+
+            const conversations = Array.from(
+                conversationMap.values()
+            );
+
+            conversations.sort(
+                (a, b) => 
+                    new Date(b.lastMessageTime || 0).getTime() - new Date(a.lastMessageTime || 0).getTime()
+            );
+
             res.status(200).json(
-                Array.from(
-                    conversationMap.values()
-                )
+                conversations
             );
 
         } catch (error) {

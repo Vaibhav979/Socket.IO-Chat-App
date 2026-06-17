@@ -9,17 +9,31 @@ export const registerPrivateMessageHandlers = (
 
     socket.on(
     "private-message",
-    async ({ to, message, fileUrl, fileType }) => {
+    async ({ to, message, fileUrl, fileType, nonce }) => {
 
         const targetSocketId =
             onlineUsers.get(to);
 
 
+        // message can be either:
+        // 1) string ciphertext
+        // 2) { cipherText: string, nonce?: string }
+        const cipherText =
+            typeof message === "string"
+                ? message
+                : (message?.cipherText ?? "");
+
+        const derivedNonce =
+            typeof message === "object" && message !== null && "nonce" in message
+                ? (message as { nonce?: string }).nonce
+                : nonce;
+
         const savedMessage =
             await Message.create({
-                sender: socket.data.username,
+                sender: socket.data.user.username,
                 receiver: to,
-                text: message || "",
+                cipherText: cipherText || "",
+                nonce: derivedNonce,
                 fileUrl: fileUrl || "",
                 fileType: fileType || "",
                 seen: false
@@ -38,6 +52,5 @@ export const registerPrivateMessageHandlers = (
             "private-message",
             savedMessage
         );
-    }
-);
+    });
 };

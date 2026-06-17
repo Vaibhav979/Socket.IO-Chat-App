@@ -8,6 +8,7 @@ import path from "path";
 import uploadRoutes from "./routes/uploadRoutes";
 import sendemailroutes from "./routes/sendemail.routes";
 import authRoutes from "./routes/auth.routes";
+import keyRoutes from "./routes/keyRoutes.routes";
 
 import { Server }
 from "socket.io";
@@ -38,6 +39,7 @@ app.use(
 app.use(uploadRoutes);
 app.use(sendemailroutes);
 app.use(authRoutes);
+app.use(keyRoutes);
 
 const server =
     http.createServer(app);

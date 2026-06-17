@@ -9,7 +9,7 @@ export const registerLoadConversations = (
         await Message.updateMany(
             {
                 sender: withUser,
-                receiver: socket.data.username,
+                receiver: socket.data.user.username,
                 seen: false
             }, {
                 seen: true
@@ -18,7 +18,7 @@ export const registerLoadConversations = (
         const messages = await Message.find({
             $or: [
                 {
-                    sender: socket.data.username,
+                    sender: socket.data.user.username,
 
                     receiver: withUser
                 },
@@ -26,7 +26,7 @@ export const registerLoadConversations = (
                 {
                     sender: withUser,
 
-                    receiver: socket.data.username
+                    receiver: socket.data.user.username
                 }
             ]
         }).sort({

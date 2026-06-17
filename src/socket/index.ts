@@ -42,43 +42,16 @@ export const initializeSocket = (
     });
 
     io.on("connection", (socket) => {
-        console.log(`New client connected: ${socket.id}`);
+        console.log(socket.data.user);
+        const username = socket.data.user.username;
 
-        socket.on("register-user", async (user) => {
-
-            if (!user.username || !user.role) {
-                return;
-            }
-
-            socket.data.username = user.username;
-
-            socket.data.role = user.role;
-
-            // saving to db
-
-            await User.findOneAndUpdate(
-                {
-                    username: user.username
-                },
-
-                {
-                    username: user.username,
-                    role: user.role,
-                },
-
-                {
-                    upsert: true,
-                    new: true
-                }
-            );
-
-            onlineUsers.set(user.username, socket.id);
+        onlineUsers.set(username, socket.id);
+        console.log(`New client connected: ${socket.id}`);         
 
             io.emit(
                 "online-users",
                 Array.from(onlineUsers.keys())
             );
-        });
 
         // Register handlers for different events
         // registerRoomHandlers(io, socket);

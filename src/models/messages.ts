@@ -10,7 +10,10 @@ const messageSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    text: {
+    cipherText: {
+        type: String,
+    },
+    nonce: {
         type: String,
     },
     seen: {

@@ -25,6 +25,11 @@ const userSchema = new mongoose.Schema({
     isEmailVerified: {
         type: Boolean,
         default: false
+    },
+
+    publicKey: {
+        type: String,
+        default: null
     }
 }, {
     timestamps: true

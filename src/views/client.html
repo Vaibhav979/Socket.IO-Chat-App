@@ -279,6 +279,18 @@
     </div>
 
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script type="module">
+        import sodium from
+            'https://cdn.jsdelivr.net/npm/libsodium-wrappers/+esm';
+
+        await sodium.ready;
+
+        window.sodium = sodium;
+
+        console.log(
+            "Sodium Ready!"
+        );
+    </script>
 
     <script>
         const token = localStorage.getItem("token");
@@ -286,34 +298,58 @@
         let pendingFiles = [];
         let isLoadingConversation = false;
 
-        (async () => {
+        let receipientPublicKey = null;
+        let sharedSecret = null;
 
-            const token =
-                localStorage.getItem("token");
+        window.addEventListener(
+            "load",
+            async () => {
 
-            const response =
-                await fetch(
-                    "http://localhost:3000/auth/me",
-                    {
-                        headers: {
-                            Authorization:
-                                `Bearer ${token}`
+                const token =
+                    localStorage.getItem(
+                        "token"
+                    );
+
+                const response =
+                    await fetch(
+                        "http://localhost:3000/auth/me",
+                        {
+                            headers: {
+                                Authorization:
+                                    `Bearer ${token}`
+                            }
                         }
-                    }
-                );
+                    );
 
-            const data =
-                await response.json();
+                const data =
+                    await response.json();
 
-            currentUser =
-                data;
+                currentUser = data;
 
-            document.getElementById("currentUsername").innerText = currentUser.username;
-            document.getElementById("currentUserRole").innerText = currentUser.role;
+                if (
+                    !localStorage.getItem(
+                        "privateKey"
+                    )
+                ) {
 
-            fetchUsers();
+                    await generateIdentityKeys();
 
-        })();
+                    await uploadPublicKey();
+                }
+
+                document.getElementById(
+                    "currentUsername"
+                ).innerText =
+                    currentUser.username;
+
+                document.getElementById(
+                    "currentUserRole"
+                ).innerText =
+                    currentUser.role;
+
+                fetchUsers();
+            }
+        );
 
         let activeChatUser = null;
         let typingTimeout;
@@ -328,6 +364,95 @@
             }
         );
 
+        async function generateIdentityKeys() {
+
+            console.log(
+                "Generating keys..."
+            );
+
+            const keyPair =
+                window.sodium.crypto_box_keypair();
+
+            const publicKey =
+                window.sodium.to_base64(
+                    keyPair.publicKey
+                );
+
+            const privateKey =
+                window.sodium.to_base64(
+                    keyPair.privateKey
+                );
+
+            localStorage.setItem(
+                "publicKey",
+                publicKey
+            );
+
+            localStorage.setItem(
+                "privateKey",
+                privateKey
+            );
+
+            console.log(
+                "Public Key:",
+                publicKey
+            );
+
+            return {
+                publicKey,
+                privateKey
+            };
+        }
+
+        async function uploadPublicKey() {
+            const publicKey = localStorage.getItem("publicKey");
+
+            console.log(`Uploading publicKey: ${publicKey}`);
+
+            const response = await fetch(`http://localhost:3000/keys/public`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+
+                        Authorization:
+                            `Bearer ${token}`
+                    },
+
+                    body: JSON.stringify({
+                        publicKey
+                    })
+                }
+            );
+
+            console.log(`Upload Public Key Status:`, response.status);
+
+            console.log(await response.json());
+        }
+
+        async function deriveSharedSecret(recipientPublicKey) {
+            const privateKey = localStorage.getItem("privateKey");
+
+            if (!privateKey) {
+                throw new Error("privateKey not found in localStorage");
+            }
+
+            if (!recipientPublicKey) {
+                throw new Error("recipientPublicKey is missing");
+            }
+
+            const privatekeyBytes = window.sodium.from_base64(privateKey);
+
+            const recipientPublicKeyBytes = window.sodium.from_base64(recipientPublicKey);
+
+            const sharedSecretBytes = window.sodium.crypto_box_beforenm(recipientPublicKeyBytes, privatekeyBytes);
+
+            return window.sodium.to_base64(sharedSecretBytes);
+        }
+
+
         const fetchUsers = async () => {
             try {
                 // const response = await fetch(`http://localhost:3000/conversations/${currentUser.username}`);
@@ -336,10 +461,13 @@
                     headers: {
                         Authorization: `Bearer ${token}`
                     }
-                }
-                );
+                });
+
+                console.log(`Status:${response.status}`);
 
                 const users = await response.json();
+
+                console.log(users);
 
                 renderUsers(users);
             } catch (error) {
@@ -400,8 +528,28 @@
 <div class="contact-bottom">
 
     <p class="last-message">
-        ${user.lastSender === currentUser.username ? `You: ${user.lastMessage ? user.lastMessage : user.lastFileType?.startsWith("image/") ? "sent an image" : 'sent an attachment'}` : `${user.username}: ${user.lastMessage ? user.lastMessage : user.lastFileType?.startsWith("image/") ? "sent an image" : "sent an attachment"}`}
-    </p>
+    ${!user.lastMessage &&
+                        !user.lastFileType
+
+                        ? "Start a conversation"
+
+                        : user.lastSender === currentUser.username
+
+                            ? `You: ${user.lastMessage
+                                ? user.lastMessage
+                                : user.lastFileType?.startsWith("image/")
+                                    ? "sent an image"
+                                    : "sent an attachment"
+                            }`
+
+                            : `${user.username}: ${user.lastMessage
+                                ? user.lastMessage
+                                : user.lastFileType?.startsWith("image/")
+                                    ? "sent an image"
+                                    : "sent an attachment"
+                            }`
+                    }
+</p>
     ${user.unreadCount > 0
                         ? `
             <div class="unread-badge">
@@ -426,7 +574,7 @@
 
                 userDiv.addEventListener(
                     "click",
-                    () => {
+                    async () => {
 
                         document.querySelectorAll(".contact").forEach((contact) => {
                             contact.classList.remove("active");
@@ -435,6 +583,21 @@
                         activeChatUser =
                             user.username;
 
+                        const keyData = await getPublicKey(activeChatUser);
+
+                        receipientPublicKey = keyData.publicKey;
+
+                        if (!localStorage.getItem("privateKey")) {
+                            throw new Error("Missing localStorage privateKey. Refresh/login and try again.");
+                        }
+
+                        if (!receipientPublicKey) {
+                            throw new Error(`Recipient publicKey missing for ${activeChatUser}. Upload might not have happened yet.`);
+                        }
+
+                        sharedSecret = await deriveSharedSecret(receipientPublicKey);
+
+                        console.log("Shared Secret ", sharedSecret);
                         userDiv.classList.add("active");
 
                         document.getElementById(
@@ -478,6 +641,27 @@
                 );
             });
         };
+
+        async function getPublicKey(username) {
+            const response = await fetch(
+                `http://localhost:3000/keys/public/${encodeURIComponent(username)}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+
+            const data = await response.json();
+
+            // API returns { publicKey } on success
+            if (!response.ok) {
+                console.error("Failed to get public key:", data);
+                throw new Error(data?.message || "Failed to fetch public key");
+            }
+
+            return data;
+        }
 
         const formatMessageTime = (dateString) => {
             return new Date(dateString)
@@ -726,12 +910,28 @@
         );
 
         // FRONTEND RECEIVES PRIVATE MESSAGE
-        socket.on("private-message", (data) => {
+        socket.on("private-message", async (data) => {
+            console.log(data);
+            let plainText = "";
             if (
                 data.sender === activeChatUser ||
                 data.receiver === activeChatUser
             ) {
-                renderMessage(data);
+                if (data.cipherText && data.nonce) {
+                    plainText = await decryptMessage(
+                        data.cipherText,
+                        data.nonce,
+                        sharedSecret
+                    );
+                }
+
+                console.log('decrypted text', plainText);
+
+                renderMessage({
+                    ...data,
+                    text: plainText
+                });
+
                 const messageContainer =
                     document.querySelector(
                         ".message-container"
@@ -779,6 +979,8 @@
 
             const textMessage = input.value.trim();
 
+            const encryptedMessage = await encryptMessage(textMessage, sharedSecret);
+
             for (const file of pendingFiles) {
                 const formData = new FormData();
 
@@ -787,6 +989,11 @@
                 const response = await fetch("http://localhost:3000/upload",
                     {
                         method: "POST",
+
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        },
+
                         body: formData
                     }
                 );
@@ -806,7 +1013,7 @@
                 socket.emit("private-message",
                     {
                         to: activeChatUser,
-                        message: textMessage
+                        message: encryptedMessage
                     }
                 );
             }
@@ -814,15 +1021,63 @@
             input.value = "";
         };
 
+        async function encryptMessage(plainText, sharedSecret) {
+            const nonce = window.sodium.randombytes_buf(sodium.crypto_secretbox_NONCEBYTES);
+
+            const key = window.sodium.from_base64(sharedSecret);
+
+            const ciphertext = window.sodium.crypto_secretbox_easy(plainText, nonce, key);
+
+            return {
+                cipherText: window.sodium.to_base64(ciphertext),
+
+                nonce: window.sodium.to_base64(nonce)
+            };
+        }
+
+        async function decryptMessage(cipherText, nonce, sharedSecret) {
+            const key = window.sodium.from_base64(sharedSecret);
+
+            const decryptedText = window.sodium.crypto_secretbox_open_easy(
+                window.sodium.from_base64(
+                    cipherText
+                ),
+
+                window.sodium.from_base64(
+                    nonce
+                ),
+                key
+            );
+
+            return window.sodium.to_string(
+                decryptedText
+            );
+        }
+
         // FRONTEND RECEIVES HISTORY
-        socket.on("conversation-history", (messages) => {
+        socket.on("conversation-history", async (messages) => {
+            console.log(
+                "HISTORY RECEIVED",
+                messages
+            );
             isLoadingConversation = true;
             const messagesContainer = document.getElementById("messages");
             messagesContainer.innerHTML = "";
 
-            messages.forEach((msg) => {
-                renderHistoryMessage(msg);
-            });
+            for (const msg of messages) {
+                if (msg.cipherText && msg.nonce) {
+                    const plainText = await decryptMessage(msg.cipherText, msg.nonce, sharedSecret);
+                    renderHistoryMessage({
+                        ...msg,
+                        text: plainText
+                    });
+                } else {
+                    renderHistoryMessage({
+                        ...msg,
+                        text: ""
+                    });
+                }
+            }
 
             requestAnimationFrame(() => {
                 messageContainer.scrollTop =
@@ -833,6 +1088,10 @@
         });
 
         const renderHistoryMessage = (data) => {
+            console.log(
+                "History text:",
+                data.text
+            );
             const isSender = data.sender === currentUser.username;
 
             const currentMessageDate =

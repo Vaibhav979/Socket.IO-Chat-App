@@ -6,7 +6,7 @@ export const registerTypingHandlers = (
     io: Server
 ) => {
     socket.on("typing", ({ to }) => {
-        console.log(`${socket.data.username} is typing...`);
+        console.log(`${socket.data.user.username} is typing...`);
         const targetSocketId = onlineUsers.get(to);
 
         if (!targetSocketId) {
@@ -16,7 +16,7 @@ export const registerTypingHandlers = (
         io.to(targetSocketId).emit(
              "user-typing",
                 {
-                    username: socket.data.username
+                    username: socket.data.user.username
                 }
             );
         }

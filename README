@@ -1,0 +1,140 @@
+# 🔐 End-to-End Encrypted Chat Application
+
+A real-time chat application built using **Node.js, Express, Socket.IO, TypeScript, MongoDB, and Libsodium**, featuring **End-to-End Encryption (E2EE)**, Email OTP authentication, JWT authorization, conversation history, and file sharing.
+
+## Features
+
+### Authentication
+
+* Email OTP Verification
+* JWT-based Authentication
+* Dynamic User Registration
+* Secure Login
+* Protected API Routes
+
+### Real-Time Messaging
+
+* One-to-One Messaging
+* Online/Offline Presence
+* Typing Indicators
+* Conversation History
+* Unread Message Count
+* Message Seen Status
+
+### End-to-End Encryption
+
+* Public/Private Key Generation using Libsodium
+* X25519 Diffie-Hellman Key Exchange
+* Shared Secret Derivation
+* Client-side Encryption & Decryption
+* Server stores only encrypted message content (ciphertext)
+* Encrypted conversation history
+
+### File Sharing
+
+* Image Uploads
+* File Attachments
+* Secure attachment delivery
+
+---
+
+## Tech Stack
+
+### Backend
+
+* Node.js
+* Express.js
+* TypeScript
+* Socket.IO
+* MongoDB
+* Mongoose
+* JWT
+* Nodemailer
+* Multer
+
+### Frontend
+
+* HTML
+* CSS
+* Vanilla JavaScript
+* Socket.IO Client
+* Libsodium
+
+---
+
+## Security Features
+
+* Email OTP Verification
+* JWT Authentication
+* Protected REST APIs
+* Protected Socket Connections
+* End-to-End Encryption
+* Public Key Infrastructure (PKI)
+* Shared Secret Generation using X25519
+
+---
+
+## Encryption Workflow
+
+1. User generates a public/private key pair locally.
+2. Public key is uploaded to the server.
+3. Sender fetches recipient's public key.
+4. Shared secret is derived using X25519.
+5. Message is encrypted locally.
+6. Server stores only:
+
+   * Ciphertext
+   * Nonce
+7. Recipient derives the same shared secret.
+8. Message is decrypted locally.
+
+At no point can the server read the plaintext message.
+
+---
+
+## Project Structure
+
+```
+src/
+│
+├── controllers/
+├── middleware/
+├── models/
+├── routes/
+├── services/
+├── socket/
+├── store/
+├── uploads/
+├── utils/
+└── server.ts
+```
+
+---
+
+## Future Improvements
+
+* Encrypted File Sharing
+* Group Chats
+* Forward Secrecy
+* One-Time Prekeys
+* Multi-Device Support
+* Read Receipts for E2EE
+* Push Notifications
+* Message Reactions
+* Voice & Video Calls
+
+---
+
+## Learning Outcomes
+
+This project provided hands-on experience with:
+
+* Authentication & Authorization
+* Socket.IO Architecture
+* MongoDB Data Modeling
+* Real-Time Communication
+* Cryptographic Key Management
+* Diffie-Hellman Key Exchange
+* End-to-End Encryption
+* Secure Client-Server Design
+* Debugging Distributed Systems
